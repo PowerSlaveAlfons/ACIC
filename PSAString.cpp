@@ -1,6 +1,11 @@
 #include "PSAString.h"
 
-uint32_t PSAString::strLen(const char* chararr)
+/*
+* This helper method returns the length of a given C-Style String.
+* Since C-Style Strings are null terminated, it loops through the string until the null terminator has been found.
+*/
+
+uint32_t PSAString::strLen(const char *chararr)
 {
     uint32_t len = 0;
     while (chararr[len] != '\0')
@@ -8,44 +13,79 @@ uint32_t PSAString::strLen(const char* chararr)
     return len;
 }
 
-PSAString::PSAString(const char* data) : length(strLen(data))
+/*
+* The constructor uses an initializer list, so the length can already be set before the rest of it is executed.
+*/
+
+PSAString::PSAString(const char *data) : length(strLen(data))
 {
-    this->internal_str = new char[length];
+
+    /*
+    * The internal char array lives on the heap in order for it to be accessible by outsiders (via the c_str() method).
+    * The length is offset by +1 due to the null terminator.
+    */
+    this->internal_str = new char[length + 1];
+
+    /*
+    * In order for the function argument to be const, we need to actually copy the values into the new internal char array,
+    * otherwise the internal data might be changed which would lead to unintended side effects.
+    */
 
     for (int i = 0; i < length; i++)
     {
         this->internal_str[i] = data[i];
     }
+    this->internal_str[length] = '\0';
+
 }
 
-PSAString* PSAString::Concetonate(const PSAString* other)
-{
-    char* temp = new char[this->GetLength() + other->GetLength()];
-    char* oldArr = this->internal_str;
-    char* otherArr = other->internal_str;
+/*
+* Every new requires a delete.
+*/
 
+PSAString::~PSAString()
+{
+    delete[] this->internal_str;
+}
+
+/*
+* Returns a new String that resembles the string it operates on (this) with the argument appended to the end of it.
+*/
+PSAString *PSAString::Concetonate(PSAString *other)
+{
+    /*
+    * There is no need to put a temporary array that's only being used by this very method onto the heap.
+    */
+    char temp[this->GetLength() + other->GetLength() + 1];
+
+    char *oldArr = this->internal_str;
+    char *otherArr = other->internal_str;
 
     uint32_t oldLength = this->GetLength();
     uint32_t newLength = oldLength + other->GetLength();
-    std::cout << "OldL " << oldLength << std::endl;
-    std::cout << "NewL. " << newLength << std::endl;
 
-
+    /*
+    * Using two loops (one after another, so still O(n)), the values of both arrays are copied into the new array.
+    */
     for (int i = 0; i < oldLength; i++)
         temp[i] = oldArr[i];
     for (int i = oldLength; i < newLength; i++)
-        temp[i] = otherArr[i-oldLength];
+        temp[i] = otherArr[i - oldLength];
 
-    PSAString* Returned = new PSAString(temp);
-    return Returned;
+    temp[newLength] = '\0';
+
+    /*
+    * Returns a new string constructed with the temporary array that's just been built.
+    */
+    return new PSAString(temp);
 }
 
 const uint32_t PSAString::GetLength()
 {
-    return strLen(this->internal_str);
+    return this->length;
 }
 
-const char* PSAString::c_str()
+const char *PSAString::c_str()
 {
     return this->internal_str;
 }
