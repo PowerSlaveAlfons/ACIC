@@ -53,8 +53,6 @@ PSAString *PSAString::Concetonate(PSAString *other)
     char *oldArr = this->internal_str.get();
     char *otherArr = other->internal_str.get();
 
-    auto oldPtr = std::make_shared<char*>(this->internal_str.get());
-
     uint32_t oldLength = this->GetLength();
     uint32_t newLength = oldLength + other->GetLength();
 
@@ -72,10 +70,7 @@ PSAString *PSAString::Concetonate(PSAString *other)
     * Returns a new string constructed with the temporary array that's just been built.
     */
     PSAString* returned = new PSAString(temp);
-    oldPtr.reset();
     return returned;
-
-
 }
 
 const uint32_t PSAString::GetLength()

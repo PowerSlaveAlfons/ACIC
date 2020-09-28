@@ -4,21 +4,30 @@
 
 int main()
 {
-    PSAString* str = new PSAString("Hello");
-    PSAString* str3 = new PSAString("World");
-    PSAString* str2 = str->Concetonate(str3);
+    char World[6] = "World";
+    
 
-    std::cout << "str: " << str->c_str() << std::endl;
-    std::cout << "str3: " << str3->c_str() << std::endl;
-    std::cout << "str2: " << str2->c_str() << std::endl;
+    /*
+    * Using smart pointers here in order to not have concetonate leak if I assign the 
+    * returned result to the argument
+    */
+    auto str = std::shared_ptr<PSAString>(new PSAString("Hello"));
+    auto str3 = std::shared_ptr<PSAString>(new PSAString(World));
+    auto str2 = std::shared_ptr<PSAString>(str.get()->Concetonate(str3.get()));
 
-    std::cout << "Length of str2: " << str2->GetLength() << std::endl;
+    std::cout << "str: " << str.get()->c_str() << std::endl;
+    std::cout << "str3: " << str3.get()->c_str() << std::endl;
+    std::cout << "str2: " << str2.get()->c_str() << std::endl;
 
-    str2 = str2->Concetonate(str3);
+    std::cout << "Length of str2: " << str2.get()->GetLength() << std::endl;
 
-    delete str;
-    delete str2;
-    delete str3;
+    str2 = std::shared_ptr<PSAString>(str2.get()->Concetonate(str3.get()));
+
+    /*
+    * -fsanitize reports absolutely nothing, valgrind only reports 324 bytes as still reachable;
+    * According to my research this is memory that is immediately given back to the OS anyway on anything valgrind runs, so it 
+    * should not be an issue.
+    */
 
     return 0;
 }
