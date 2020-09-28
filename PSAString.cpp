@@ -24,7 +24,7 @@ PSAString::PSAString(const char *data) : length(strLen(data))
     * The internal char array lives on the heap in order for it to be accessible by outsiders (via the c_str() method).
     * The length is offset by +1 due to the null terminator.
     */
-    this->internal_str = new char[length + 1];
+    this->internal_str = std::shared_ptr<char[]>(new char[length + 1]);
 
     /*
     * In order for the function argument to be const, we need to actually copy the values into the new internal char array,
@@ -33,19 +33,10 @@ PSAString::PSAString(const char *data) : length(strLen(data))
 
     for (int i = 0; i < length; i++)
     {
-        this->internal_str[i] = data[i];
+        this->internal_str.get()[i] = data[i];
     }
-    this->internal_str[length] = '\0';
+    this->internal_str.get()[length] = '\0';
 
-}
-
-/*
-* Every new requires a delete.
-*/
-
-PSAString::~PSAString()
-{
-    delete[] this->internal_str;
 }
 
 /*
@@ -56,10 +47,13 @@ PSAString *PSAString::Concetonate(PSAString *other)
     /*
     * There is no need to put a temporary array that's only being used by this very method onto the heap.
     */
+
     char temp[this->GetLength() + other->GetLength() + 1];
 
-    char *oldArr = this->internal_str;
-    char *otherArr = other->internal_str;
+    char *oldArr = this->internal_str.get();
+    char *otherArr = other->internal_str.get();
+
+    auto oldPtr = std::make_shared<char*>(this->internal_str.get());
 
     uint32_t oldLength = this->GetLength();
     uint32_t newLength = oldLength + other->GetLength();
@@ -77,7 +71,11 @@ PSAString *PSAString::Concetonate(PSAString *other)
     /*
     * Returns a new string constructed with the temporary array that's just been built.
     */
-    return new PSAString(temp);
+    PSAString* returned = new PSAString(temp);
+    oldPtr.reset();
+    return returned;
+
+
 }
 
 const uint32_t PSAString::GetLength()
@@ -87,5 +85,5 @@ const uint32_t PSAString::GetLength()
 
 const char *PSAString::c_str()
 {
-    return this->internal_str;
+    return this->internal_str.get();
 }

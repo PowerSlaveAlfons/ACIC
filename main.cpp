@@ -14,10 +14,11 @@ int main()
 
     std::cout << "Length of str2: " << str2->GetLength() << std::endl;
 
-    //str2 = str2->Concetonate(str3);
+    str2 = str2->Concetonate(str3);
 
     delete str;
     delete str2;
     delete str3;
+
     return 0;
 }
