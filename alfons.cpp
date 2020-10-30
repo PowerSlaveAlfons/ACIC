@@ -15,6 +15,12 @@ private:
     }
 
 public:
+    PSAString() : length(0)
+    {
+        this->internal_str = std::shared_ptr<char[]>(new char[1]);
+        this->internal_str.get()[0] = '\0';
+    }
+    
     PSAString(const char *data) : length(strLen(data))
     {
         /*
@@ -37,7 +43,7 @@ public:
 
     /* Default constructor that just takes a length */
 
-    PSAString(int length) : length(length - 1)
+    PSAString(uint32_t length) : length(length - 1)
     {
         this->internal_str = std::shared_ptr<char[]>(new char[length + 1]);
     }
@@ -65,9 +71,8 @@ public:
             /* Assign the length of the internal array */
             if (this->length != other.GetLength())
                 this->length = other.GetLength();
-            
-            this->internal_str = std::shared_ptr<char[]>(new char[this->length + 1]);
 
+            this->internal_str = std::shared_ptr<char[]>(new char[this->length + 1]);
 
             /* Deepcopy the characters into the new object */
             for (uint32_t i = 0; i < length; i++)
@@ -82,9 +87,7 @@ public:
 
     PSAString *Concatenate(const PSAString *other)
     {
-        /*
-		* There is no need to put a temporary array that's only being used by this very method onto the heap.
-		*/
+        /* Fixed the unnecessary array */
 
         PSAString *Returned = new PSAString(this->GetLength() + other->GetLength() + 1);
 
@@ -97,6 +100,7 @@ public:
         /*
 		* Using two loops (one after another, so still O(n)), the values of both arrays are copied into the new array.
 		*/
+
         for (uint32_t i = 0; i < oldLength; i++)
             Returned->internal_str.get()[i] = oldArr[i];
         for (uint32_t i = oldLength; i < newLength; i++)
@@ -125,6 +129,7 @@ public:
         /*
 		* Using two loops (one after another, so still O(n)), the values of both arrays are copied into the new array.
 		*/
+
         for (uint32_t i = 0; i < oldLength; i++)
             Returned->internal_str.get()[i] = oldArr[i];
         for (uint32_t i = oldLength; i < newLength; i++)
@@ -153,6 +158,7 @@ int main()
 	* Using smart pointers here in order to not have concetonate leak if I assign the
 	* returned result to the argument
 	*/
+
     auto str = std::make_shared<PSAString>("Hello");
     auto str3 = std::make_shared<PSAString>(World);
     auto str2 = std::shared_ptr<PSAString>(str.get()->ConcetaneteShared(str3.get()));
